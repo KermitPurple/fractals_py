@@ -1,4 +1,4 @@
-import pygame
+import pygame, math
 import pygame_tools as pgt
 from abc import ABC, abstractmethod
 from typing import List
@@ -18,7 +18,7 @@ class Fractal(ABC):
         self.screen = screen
 
     @abstractmethod
-    def draw(self, screen: pygame.Surface):
+    def draw(self):
         '''Draw the fractal'''
 
 class SquareFractal(Fractal):
@@ -109,4 +109,38 @@ class SierpinskiTriangle(Fractal):
         )
         self.draw_triangle(points)
 
-fractals = [SquareFractal, SierpinskiTriangle]
+class FractalTree(Fractal):
+    '''The Fractal Tree'''
+
+    def draw_tree(self, pos: pgt.Point, length: int, theta: float = math.pi / 2):
+        '''Recursive method to draw tree'''
+        new_pos = pos - pgt.Point(math.cos(theta), math.sin(theta)) * length
+        pygame.draw.line(
+            self.screen,
+            self.color,
+            pos,
+            new_pos
+        )
+        length //= 2
+        if length <= 1:
+            return
+        self.draw_tree(
+            new_pos,
+            length,
+            math.pi / 4
+        )
+        self.draw_tree(
+            new_pos,
+            length,
+            3 * math.pi / 4
+        )
+
+    def draw(self):
+        '''Draw the entire tree'''
+        self.draw_tree(
+            self.window_size // (2, 1),
+            self.window_size.y / 3,
+        )
+
+
+fractals = [SquareFractal, SierpinskiTriangle, FractalTree]
