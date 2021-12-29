@@ -1,6 +1,7 @@
 import pygame
 import pygame_tools as pgt
 from abc import ABC, abstractmethod
+from typing import List
 
 class Fractal(ABC):
     '''Abstract class for a fractal'''
@@ -42,4 +43,70 @@ class SquareFractal(Fractal):
         rect.center = self.center
         self.draw_square(rect)
 
-fractals = [SquareFractal]
+class SierpinskiTriangle(Fractal):
+    '''The Sierpinski Triangle fractal'''
+
+    @staticmethod
+    def get_midpoint(a: pgt.Point, b: pgt.Point) -> pgt.Point:
+        '''
+        get the midpoint of 2  points
+        '''
+        return (a + b) / 2
+
+    @staticmethod
+    def get_midpoints(points: List[pgt.Point]) -> List[pgt.Point]:
+        '''
+        get the midpoints of all adjacent points in this list
+        '''
+        if len(points) != 3:
+            raise ValueError('Triangles have Exactly 3 points man')
+        result = []
+        prev = points[-1]
+        for point in points:
+            result.append((prev + point) / 2)
+            prev = point
+        return result
+
+    def draw_triangle(self, points: List[pgt.Point]):
+        '''Recursive method for drawing triangles'''
+        if pgt.Point.distance(points[1], points[2]) <= 1:
+            return
+        midpoints = self.get_midpoints(points)
+        pygame.draw.lines(
+            self.screen,
+            self.color,
+            True,
+            midpoints,
+        )
+        self.draw_triangle([
+            points[0],
+            self.get_midpoint(points[0], points[1]),
+            self.get_midpoint(points[0], points[2]),
+        ])
+        self.draw_triangle([
+            points[1],
+            self.get_midpoint(points[1], points[0]),
+            self.get_midpoint(points[1], points[2]),
+        ])
+        self.draw_triangle([
+            points[2],
+            self.get_midpoint(points[2], points[1]),
+            self.get_midpoint(points[2], points[0]),
+        ])
+
+    def draw(self):
+        '''Draw the sierpinski triangle'''
+        points = [
+            self.center * (1, 0),
+            self.window_size / (3, 1) - (0, 1),
+            self.window_size * (2 / 3, 1) - (0, 1)
+        ]
+        pygame.draw.lines(
+            self.screen,
+            self.color,
+            True,
+            points
+        )
+        self.draw_triangle(points)
+
+fractals = [SquareFractal, SierpinskiTriangle]

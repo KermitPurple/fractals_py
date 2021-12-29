@@ -20,10 +20,17 @@ class FractalsSim(pgt.GameScreen):
         self.fractals = list(map(lambda x: x(self.window_size, self.FG, self.screen), fractals))
         self.fractal_index = 0
         self.fractal_len = len(fractals)
+        self.fractal = self.fractals[self.fractal_index]
 
     def update(self):
         self.screen.fill(self.BG)
-        self.fractals[self.fractal_index].draw()
+        self.fractal.draw()
+
+    def key_down(self, _event: pygame.event.Event):
+        self.fractal_index += 1
+        if self.fractal_index >= self.fractal_len:
+            self.fractal_index = 0
+        self.fractal = self.fractals[self.fractal_index]
 
 def main():
     '''Driver Code'''
