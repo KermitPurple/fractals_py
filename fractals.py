@@ -2,6 +2,7 @@ import pygame, math
 import pygame_tools as pgt
 from abc import ABC, abstractmethod
 from typing import List
+from itertools import chain
 
 class Fractal(ABC):
     '''Abstract class for a fractal'''
@@ -142,5 +143,51 @@ class FractalTree(Fractal):
             self.window_size.y / 3,
         )
 
+class HilbertCurve(Fractal):
+    '''A curving fractal'''
 
-fractals = [SquareFractal, SierpinskiTriangle, FractalTree]
+    @staticmethod
+    def rotate_around(pos: pgt.Point, origin: pgt.Point, theta: float) -> pgt.Point:
+        x, y = pos - origin
+        return pgt.Point(
+            x * math.cos(theta) - y * math.sin(theta),
+            y * math.cos(theta) + x * math.sin(theta)
+        ) + origin
+
+    def draw_curve(self, points: List[pgt.Point]):
+        '''Recursive method for drawing curve'''
+        dist = pgt.Point.distance(*points[:2])
+        if dist <= 5:
+            pygame.draw.lines(
+                self.screen,
+                self.color,
+                False,
+                points,
+                1
+            )
+            return
+        new_dist = dist // 4
+        origin = self.center
+        scaled = list(map(lambda x: (x - origin) // 4, points))
+        size = pgt.Point.distance(scaled[0], scaled[-1])
+        pad = size + new_dist
+        print(new_dist, size, pad)
+        self.draw_curve(list(reversed(list(map(lambda x: x + origin + pgt.Point(1, -1) * (new_dist / 2 - (pad + new_dist) / 2), chain(
+            map(lambda x: self.rotate_around(x, (0, 0), -math.pi / 2) + (0, -pad), scaled),
+            reversed(scaled),
+            map(lambda x: x + (pad, 0), reversed(scaled)),
+            map(lambda x: self.rotate_around(x, (0, 0), math.pi / 2) + (pad, -pad), scaled),
+        ))))))
+
+    def draw(self):
+        '''Draw entire curve'''
+        size = min(self.window_size) - 10
+        half = size // 2
+        self.draw_curve([
+            self.center + (half, -half),
+            self.center + (half, half),
+            self.center + (-half, half),
+            self.center + (-half, -half),
+        ])
+
+fractals = [SquareFractal, SierpinskiTriangle, FractalTree, HilbertCurve]
