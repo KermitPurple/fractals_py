@@ -146,6 +146,8 @@ class FractalTree(Fractal):
 class HilbertCurve(Fractal):
     '''A curving fractal'''
 
+    SCALING_FACTOR = 2.2
+
     @staticmethod
     def rotate_around(pos: pgt.Point, origin: pgt.Point, theta: float) -> pgt.Point:
         x, y = pos - origin
@@ -157,6 +159,7 @@ class HilbertCurve(Fractal):
     def draw_curve(self, points: List[pgt.Point]):
         '''Recursive method for drawing curve'''
         dist = pgt.Point.distance(*points[:2])
+        new_dist = dist / self.SCALING_FACTOR
         if dist <= 5:
             pygame.draw.lines(
                 self.screen,
@@ -166,12 +169,10 @@ class HilbertCurve(Fractal):
                 1
             )
             return
-        new_dist = dist // 4
         origin = self.center
-        scaled = list(map(lambda x: (x - origin) // 4, points))
+        scaled = list(map(lambda x: (x - origin) / self.SCALING_FACTOR, points))
         size = pgt.Point.distance(scaled[0], scaled[-1])
         pad = size + new_dist
-        print(new_dist, size, pad)
         self.draw_curve(list(reversed(list(map(lambda x: x + origin + pgt.Point(1, -1) * (new_dist / 2 - (pad + new_dist) / 2), chain(
             map(lambda x: self.rotate_around(x, (0, 0), -math.pi / 2) + (0, -pad), scaled),
             reversed(scaled),
